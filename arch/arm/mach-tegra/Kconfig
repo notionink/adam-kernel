@@ -1,0 +1,205 @@
+if ARCH_TEGRA
+
+comment "NVIDIA Tegra options"
+
+choice
+	prompt "Select Tegra processor family for target system"
+
+config ARCH_TEGRA_2x_SOC
+	bool "Tegra 2 family"
+	select CPU_V7
+	select ARM_GIC
+	select ARCH_REQUIRE_GPIOLIB
+	select ARM_ERRATA_742230
+	help
+	  Support for NVIDIA Tegra AP20 and T20 processors, based on the
+	  ARM CortexA9MP CPU and the ARM PL310 L2 cache controller
+
+endchoice
+
+
+choice
+	prompt "Select Tegra-based product"
+
+config MACH_TEGRA_GENERIC
+	bool "Tegra 2 Development System (Whistler, Harmony, Tango)"
+	select TEGRA_ODM_KIT
+	select MACH_HARMONY
+	select MACH_VENTANA
+	help
+	  Support for NVIDIA Tegra 2 development platforms; requires
+	  selection of an appropriate ODM kit for your specific development
+	  system
+
+endchoice
+
+config MACH_HARMONY
+	bool
+
+config MACH_VENTANA
+	bool
+
+config TEGRA_ODM_KIT
+	bool
+
+config ARM_ERRATA_742230
+	bool
+	depends on CPU_V7
+
+choice
+	prompt "Low-level debug console UART"
+	default TEGRA_DEBUG_UART_NONE
+
+config TEGRA_DEBUG_UART_NONE
+	bool "None"
+
+config TEGRA_DEBUG_UARTA
+	bool "UART-A"
+
+config TEGRA_DEBUG_UARTB
+	bool "UART-B"
+
+config TEGRA_DEBUG_UARTC
+	bool "UART-C"
+
+config TEGRA_DEBUG_UARTD
+	bool "UART-D"
+
+config TEGRA_DEBUG_UARTE
+	bool "UART-E"
+
+endchoice
+
+config TEGRA_NVOS
+	bool "Include Tegra NvOS interfaces"
+	default y
+	help
+	  Adds the Tegra NvOS driver layer and associated user-space
+	  interfaces
+
+config TEGRA_NVRM
+	bool "Include Tegra NvRM interfaces"
+	depends on TEGRA_NVOS && TEGRA_ODM_KIT
+	default n
+	help
+	  Adds the Tegra NVRM driver layer and associated user-space
+	  interfaces; requires a platform with an ODM kit implementation
+
+config TEGRA_IOVMM_GART
+	bool "Enable I/O virtual memory manager for GART"
+	depends on ARCH_TEGRA_2x_SOC
+	default y
+	select TEGRA_IOVMM
+	help
+	  Enables support for remapping discontiguous physical memory
+	  shared with the operating system into contiguous I/O virtual
+	  space through the GART hardware included on Tegra SoCs
+
+config TEGRA_SYSTEM_DMA
+	bool "Enable system DMA driver for NVIDIA Tegra SoCs"
+	default y
+	help
+	  Adds system DMA functionality for NVIDIA Tegra SoCs, used by
+	  several Tegra device drivers
+
+config TEGRA_IOVMM
+	bool
+
+config TEGRA_NVEC
+	bool "Include driver for Tegra NvEC embedded controller interface"
+	depends on TEGRA_NVRM
+	help
+	  Adds support for the NVIDIA Tegra NvEC I2C-slave based protocol
+	  for communicating to embedded controllers.
+
+config TEGRA_PCI
+	boolean "PCIe host controller driver"
+	select PCI
+	default n
+	help
+		Adds PCIe Host controller driver for tegra2 based systems
+
+config TEGRA_FUSE
+	boolean "Support reading and writing hardware fuses"
+	depends on TEGRA_NVRM
+	help
+	  Adds support for reading and writing (blowing) internal fuses
+	  through sysfs
+
+config TEGRA_AES
+	boolean "Tegra cryptographic engine (AES) driver interface"
+	depends on TEGRA_NVRM
+	help
+	  Includes driver support for the hardware cryptographic engine
+	  in Tegra SoCs
+
+config TEGRA_AES_USER
+	boolean "Support user-land access to cryptographic engine"
+	depends on TEGRA_AES
+	help
+	  Allows user processes to access the crytographic hardware through
+	  /dev/nvaes
+
+config TEGRA_USB_CHARGE
+	boolean "Enable USB charging support"
+	depends on REGULATOR_TEGRA
+	help
+	  Enables charging over USB
+
+config TEGRA_ODM_VIBRATE
+	boolean "System vibrator device driver using NVIDIA Tegra ODM kit"
+	depends on ANDROID_TIMED_OUTPUT && TEGRA_ODM_KIT
+	default n
+	help
+	  Adds a timed output vibrator device node for an NVIDIA Tegra ODM kit
+	  vibrator driver
+
+config TEGRA_USB_VBUS_DETECT_BY_PMU
+	boolean "VBUS detection by PMU"
+	help
+		Enables USB VBUS detection by PMU
+
+choice
+	prompt "Tegra CPU power off [LP2 state] policy"
+	depends on TEGRA_NVRM
+	default TEGRA_LP2POLICY_IGNORE_LC
+	help
+	  Selects additional DVFS qualification policy for the CPU idle
+	  governor decision to put CPU into LP2 state
+
+config TEGRA_LP2POLICY_DISABLED
+	bool "LP2 is not allowed"
+	help
+	  Disregards CPU idle governor LP2 requests, never enters LP2 state
+
+config TEGRA_LP2POLICY_ENTER_IN_LC
+	bool "LP2 is allowed in DVFS low corner"
+	help
+	  Carries on CPU idle governor LP2 request and disables DVFS wake
+	  interrupt only if all DVFS clock loads are under low frequency
+	  thresholds, and none of DVFS clients is busy
+
+config TEGRA_LP2POLICY_PERSIST_IN_LC
+	bool "LP2 is persistent in DVFS low corner"
+	help
+	  Always carries on CPU idle governor LP2 request, but disables DVFS
+	  wake interrupt only if all DVFS clock loads are under low frequency
+	  thresholds, or DVFS clients busy request floors are reached
+
+config TEGRA_LP2POLICY_IGNORE_LC
+	bool "LP2 is always allowed and persistent"
+	help
+	  Always carries on CPU idle governor LP2 request, and disables DVFS
+	  wake interrupt regardless of DVFS clock activities
+
+endchoice
+
+if TEGRA_ODM_KIT
+source "arch/arm/mach-tegra/odm_kit/Kconfig"
+endif
+
+if TEGRA_ODM_HARMONY
+source "arch/arm/mach-tegra/malata_smb/Kconfig"
+endif
+
+endif
