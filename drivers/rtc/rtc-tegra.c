@@ -323,6 +323,26 @@ static struct rtc_class_ops tegra_rtc_ops = {
 	.alarm_irq_enable = tegra_rtc_alarm_irq_enable,
 };
 
+int internal_tegra_rtc_read_time(struct rtc_time *tm)
+{
+        struct device *dev = &(rtc_dev->dev);
+        return tegra_rtc_read_time(dev, tm);
+}
+int internal_tegra_rtc_set_time(struct rtc_time *tm)
+{
+        struct device *dev = &(rtc_dev->dev);
+        return tegra_rtc_set_time(dev, tm);
+}
+int internal_tegra_rtc_read_alarm(struct rtc_wkalrm *t)
+{
+        struct device *dev = &(rtc_dev->dev);
+        return tegra_rtc_read_alarm(dev, t);
+}
+int internal_tegra_rtc_set_alarm(struct rtc_wkalrm *t)
+{
+        struct device *dev = &(rtc_dev->dev);
+        return tegra_rtc_set_alarm(dev, t);
+}
 static int __init tegra_rtc_probe(struct platform_device *pdev)
 {
 	struct resource *res;
